@@ -11,6 +11,9 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
+var fs = require('fs');
+
+
 var exports = module.exports = {};
 
 
@@ -24,42 +27,60 @@ var messageStore = [];
 // }
 //
 var router = {
+  index: {
+    GET: serveUpIndex
+  },
   messages: {
     POST: postMessages,
     GET: getMessages,
     OPTIONS: function(){return 'yo';}
+  },
+  'favicon.ico': {
+    GET: function(){return undefined;}
   }
 };
 
+function serveUpIndex(request, response){
+  var statusCode = 200;
+  var headers = defaultCorsHeaders;
+  headers['Content-Type'] = "text/html";
+  response.writeHead(statusCode, headers);
+  fs.readFile('///Users/student/Desktop/2014-10-chatterbox-server/client/index.html', function (err, data) {
+    if (err) throw err;
+    response.end(data);
+  });
+}
+
 function getMessages(request,response){
+  var statusCode = 200;
+  var headers = defaultCorsHeaders;
+  headers['Content-Type'] = "application/json";
+  response.writeHead(statusCode, headers);
   console.log('didnt break errythang');
-  response.on('end', function(){JSON.parse(messageStore)});
+  response.end(JSON.parse(messageStore));
 };
 
 function postMessages(request,response){
+  var statusCode = 200;
+  var headers = defaultCorsHeaders;
+  headers['Content-Type'] = "application/json";
+  response.writeHead(statusCode, headers);
   var fatString = '';
   request.on('data', function(chunk) {
     messageStore.push(JSON.parse(chunk));
     console.log(JSON.parse(chunk));
   });
-  // request.on('end', function(){
-  //   var result = JSON.stringify(fatString);
-  //   messageStore.push(result);
-  //   console.log(JSON.parse(result));
-  //   console.log('got messages: ', messageStore);
-  // })
 };
 
 var requestHandler = function(request, response) {
   console.log(request.url);
   console.log(request.method);
-  console.log("Body:", request.body)
 
 
-var route = request.url.split('/')[1];
-console.log('%%%%%%%%%',route);
-router[route][request.method](request, response);
-console.log()
+// var route = request.url.split('/')[1];
+// console.log('%%%%%%%%%',route);
+// router[route || 'index'][request.method](request, response);
+// console.log()
 
 
 
@@ -106,7 +127,12 @@ console.log()
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end(JSON.stringify(messageStore));
+  // response.end(JSON.stringify(messageStore));
+var route = request.url.split('/')[1];
+console.log('%%%%%%%%%',route);
+router[route || 'index'][request.method](request, response);
+console.log()
+
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
