@@ -11,8 +11,62 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
+var exports = module.exports = {};
+
+
+var messageStore = [];
+// var chunk = function(){
+//   console.log('in POST method...');
+//   request.on('data', function(chunk) {
+//     console.log("Received body data:");
+//     console.log(chunk.toString());
+//   })
+// }
+//
+var router = {
+  messages: {
+    POST: postMessages,
+    GET: getMessages,
+    OPTIONS: function(){return 'yo';}
+  }
+};
+
+function getMessages(request,response){
+  console.log('didnt break errythang');
+  response.on('end', function(){JSON.parse(messageStore)});
+};
+
+function postMessages(request,response){
+  var fatString = '';
+  request.on('data', function(chunk) {
+    messageStore.push(JSON.parse(chunk));
+    console.log(JSON.parse(chunk));
+  });
+  // request.on('end', function(){
+  //   var result = JSON.stringify(fatString);
+  //   messageStore.push(result);
+  //   console.log(JSON.parse(result));
+  //   console.log('got messages: ', messageStore);
+  // })
+};
 
 var requestHandler = function(request, response) {
+  console.log(request.url);
+  console.log(request.method);
+  console.log("Body:", request.body)
+
+
+var route = request.url.split('/')[1];
+console.log('%%%%%%%%%',route);
+router[route][request.method](request, response);
+console.log()
+
+
+
+
+  // console.log(request.trailers);
+  // console.log(request.headers);
+
   // Request and Response come from node's http module.
   //
   // They include information about both the incoming request, such as
@@ -39,7 +93,7 @@ var requestHandler = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = "text/plain";
+  headers['Content-Type'] = "application/json";
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
@@ -52,7 +106,7 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end("Hello, World!");
+  response.end(JSON.stringify(messageStore));
 };
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -71,3 +125,4 @@ var defaultCorsHeaders = {
   "access-control-max-age": 10 // Seconds.
 };
 
+exports.requestHandler = requestHandler;
