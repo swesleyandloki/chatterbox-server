@@ -5,7 +5,7 @@ $(function() {
   app = {
 //TODO: The current 'addFriend' function just adds the class 'friend'
 //to all messages sent by the user
-    server: 'http://127.0.0.1:3000/messages',
+    server: 'http://127.0.0.1:3000/message',
     username: 'anonymous',
     roomname: 'lobby',
     lastMessageId: 0,
@@ -32,7 +32,7 @@ $(function() {
       app.fetch(false);
 
       // Poll for new messages
-      // setInterval(app.fetch, 3000);
+    //   setInterval(app.fetch, 3000);
     },
     send: function(data) {
       app.startSpinner();
@@ -60,25 +60,24 @@ $(function() {
         url: app.server,
         type: 'GET',
         contentType: 'application/json',
-        // data: { order: '-createdAt'},
+        data: { order: '-createdAt'},
         success: function(data) {
           console.log('chatterbox: Messages fetched');
           console.log(data);
           // Don't bother if we have nothing to work with
-          console.log('balls',data.results);
-          // if (!data.results || !data.results.length) { return; }
+          if (!data.results || !data.results.length) { return; }
+
           // Get the last message
-          var mostRecentMessage = data[data.length-1];
+          var mostRecentMessage = data.results[data.results.length-1];
           var displayedRoom = $('.chat span').first().data('roomname');
-          // app.stopSpinner();
+          app.stopSpinner();
           // Only bother updating the DOM if we have a new message
-          // if (mostRecentMessage.objectId !== app.lastMessageId || app.roomname !== displayedRoom)
-          {
+          if (mostRecentMessage.objectId !== app.lastMessageId || app.roomname !== displayedRoom) {
             // Update the UI with the fetched rooms
-            app.populateRooms(data);
+            app.populateRooms(data.results);
 
             // Update the UI with the fetched messages
-            app.populateMessages(data, animate);
+            app.populateMessages(data.results, animate);
 
             // Store the ID of the most recent message
             app.lastMessageId = mostRecentMessage.objectId;
@@ -223,14 +222,12 @@ $(function() {
     },
     startSpinner: function(){
       $('.spinner img').show();
-      // $('form input[type=submit]').attr('disabled', "true");
+      $('form input[type=submit]').attr('disabled', "true");
     },
 
     stopSpinner: function(){
       $('.spinner img').fadeOut('fast');
-     //  $('form input[type=submit]').attr('disabled', null);
+      $('form input[type=submit]').attr('disabled', null);
     }
   };
-
-}());// YOUR CODE HERE:
-
+}());
