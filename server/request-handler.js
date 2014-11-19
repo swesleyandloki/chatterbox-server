@@ -31,7 +31,8 @@ var messages = {
 };
 
 var getRequest = function(request, response, way){
-  if(way === '/'){
+  if(way==='/favicon.ico'){return}
+  if(url.parse(way).pathname=== '/' || ''){
   fs.readFile('//Users/student/Desktop/2014-10-chatterbox-server/client/index.html', function(err, data){
     if(err){
       throw err;
@@ -41,15 +42,28 @@ var getRequest = function(request, response, way){
       responder(response, data, 200, fancyHeaders);
     }
   });
-  } else {
-    var filePath = '//Users/student/Desktop/2014-10-chatterbox-server/client' + way;
+  } else if (url.parse(way).pathname === '/message'){
+    fancyHeaders = headers;
+    fancyHeaders['Content-Type'] = 'application/json';
+    responder(response, JSON.stringify(messages), 200, fancyHeaders);
+  } else if(url.parse(way).pathname.slice(-3)==='css'){
+    fs.readFile('//Users/student/Desktop/2014-10-chatterbox-server/client'+url.parse(way).pathname, function(err, data){
+    if(err){
+      throw err;
+    }else if(data){
+      fancyHeaders = headers;
+      fancyHeaders['Content-Type'] = "text/css";
+      responder(response, data, 200, fancyHeaders);
+    }
+  });
+  }else {
+    var filePath = '//Users/student/Desktop/2014-10-chatterbox-server/client' + url.parse(way).pathname;
     fs.readFile(filePath, function(err, data){
       if(err){
         throw err;
       } else if(data){
-        fancyHeaders = headers;
-        fancyHeaders['Content-Type'] = "text/javascript";
-        responder(response, data, 200, fancyHeaders);
+
+        responder(response, data, 200, headers);
       }
     })
   };
@@ -64,7 +78,7 @@ var postRequest = function(request, response, way){
     fatResult = JSON.parse(fatResult);
     fatResult.objectId = idMachine ++;
     messages.results.push(fatResult);
-    responder(response, messages, 201);
+    responder(response, JSON.stringify(messages), 201);
   })
 }
 
@@ -84,21 +98,6 @@ var requests = {
   'POST': postRequest,
   'OPTIONS': optionsRequest
 }
-
-// var pathfinder = {
-// //URLS are keys in here.
-//   'initial': 'Users/student/Desktop/2014-10-chatterbox-server/client',
-//   'index.html':'',
-//   'styles.css':,
-//   'jquery.min.js':,
-//   'underscore-min.js':,
-//   'app.js':,
-//   'spiffygif_46x46.gif':,
-//   'jquery.min.map':,
-//   'underscore-min.map:'
-
-// }
-
 
 
 var requestHandler = function(request, response) {
